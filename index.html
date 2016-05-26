@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Social count</title>
+    <script src="external/jquery-2.2.4.min.js"></script>
+    <script src="classes/Provider.js"></script>
+    <script src="classes/Providers/FacebookProvider.js"></script>
+    <script src="classes/Providers/PinterestProvider.js"></script>
+    <link rel="stylesheet" href="styles/main.css">
+    <script>
+        //Shortcut for console.log
+        var l = console.log.bind(console);
+        //split number with comas for prettier output
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        /**
+         * Main function to request social counts for different providers
+         * @param providers array|string
+         * @param pageurls array|string
+         * @param callback function @param results {"providerName": "providerResultObject"}
+         */
+        function GetSocialCount(providers, pageurls, callback) {
+            //Handling parameters as string and array
+            var _providers = $.isArray(providers) ? providers : [providers];
+            //Setting each provider with urls, collecting returned Deffereds
+            var providersWithUrls = _providers.map(function (provider) {
+                return provider.setPages(pageurls);
+            });
+            //Running all collected Deffereds
+            $.when.apply(undefined, providersWithUrls).done(function () {
+                //Converting arguments object to normal Array
+                var args = Array.prototype.slice.call(arguments);
+                var _obj = {};
+                //Preparing return object
+                for (var i = 0, len = args.length; i < len; i++) {
+                    var obj = args[i];
+                    _obj[obj.name] = obj;
+                }
+                //Calling callback on success
+                callback(_obj);
+            })
+        }
+
+        //Using GetSocialCount with UI
+        $(function () {
+            var _$results = $('#results');
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+
+                //Get input, convert to array of urls
+                var _input = $(this).find('input').val(),
+                    _urls = _input.split(',');
+
+                GetSocialCount(
+                        [new PinterestProvider(),new FacebookProvider()],
+                        _urls,
+                        function (result) {
+                            var _output = '';
+                            //Loop providers
+                            for (var i = 0; i < Object.keys(result).length; i++) {
+                                var _provider = result[Object.keys(result)[i]];
+                                _output += '<h3>' + _provider.displayName + '</h3>';
+                                //Loop urls of each provider
+                                for (var k = 0; k < Object.keys(_provider.results).length; k++) {
+                                    var _result = _provider.results[Object.keys(_provider.results)[k]],
+                                        _url = Object.keys(_provider.results)[k];
+                                    _output += '<span><strong>'+_url+'</strong> <i>'+numberWithCommas(_result.count)+'</i> '+_provider.unit+'</span><br/>'
+                                }
+                            }
+                            _$results.html(_output);
+                        }
+                );
+            })
+        })
+    </script>
+</head>
+<body>
+<div id="wrap">
+    <h2>Social count</h2>
+    <form action="">
+        <input id="urls" type="text" placeholder="http://playbuzz.com, http://google.com" required/>
+        <button>Send</button>
+        <p>* single url or comma separated urls</p>
+    </form>
+    <div id="results"></div>
+</div>
+</body>
+</html>

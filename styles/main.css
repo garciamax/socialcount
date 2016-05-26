@@ -1,0 +1,28 @@
+body{
+    font-family:Arial,sans-serif;
+}
+#wrap{
+    width: 50%;
+    margin: 0 auto;
+}
+h2{
+    text-align: center;
+    font-size: 90%;
+}
+h3{
+    margin-bottom: 5px;
+}
+p{
+    margin-top: 5px;
+    font-size: 80%;
+}
+form{
+    padding: 20px;
+}
+input{
+    width: 88%;
+}
+input, button{
+    font-size: 130%;
+    line-height: 200%;
+}
